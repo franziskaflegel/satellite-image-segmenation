@@ -7,6 +7,10 @@ from keras_unet.metrics import iou, iou_thresholded
 from keras_unet.utils import plot_segm_history
 from keras_unet.utils import plot_imgs
 
+#######################################################
+#################### PARAMETERS #######################
+#######################################################
+
 # Parameters for data augmentation
 batch_size = 8
 rotation_range = 5.
@@ -17,8 +21,17 @@ zoom_range = 0.2
 steps_per_epoch = 200
 epochs = 7
 
-# Directory and image size
-imgs_np, masks_np = load_data(r'data/images/')
+# Model file name
+model_filename = 'segm_model_v3.h5'
+
+# Directory
+directory = r'data/images/'
+
+#######################################################
+################# DATA PREPARATION ####################
+#######################################################
+
+imgs_np, masks_np = load_data(directory)
 image_size = imgs_np.shape[1]
 
 print("Shape of X: " + str(imgs_np.shape))
@@ -48,13 +61,16 @@ print(xx.shape, yy.shape)
 
 # plot_imgs(org_imgs=xx, mask_imgs=yy, nm_img_to_plot=batch_size, figsize=6)
 
+#######################################################
+############## SETUP AND TRAIN NETWORK ################
+#######################################################
+
 # Initialize network
 input_shape = x_train[0].shape
 model = satellite_unet(input_shape)
 model.summary()
 
 # Compile & train
-model_filename = 'segm_model_v3.h5'
 callback_checkpoint = ModelCheckpoint(
     model_filename,
     verbose=1,
@@ -78,11 +94,10 @@ history = model.fit(
     callbacks=[callback_checkpoint]
 )
 
-
 # Plot training history
 plot_segm_history(history)
 
-# Plot original + ground truth + pred + overlay (pred on top of original)
+# Plot original + pred + overlay (pred on top of original)
 model.load_weights(model_filename)
 y_pred = model.predict(x_val)
 
