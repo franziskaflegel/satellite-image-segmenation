@@ -31,6 +31,21 @@ def load_data(directory):
 
     return imgs_np, masks_np
 
+def load_test_data(directory):
+    X_test = []
+    for entry in os.scandir(directory):
+        if entry.path.endswith(".png") and entry.is_file():
+            X = mpimg.imread(entry.path)
+            X = X[:, :, :3]  # Drop the alpha channel
+            X_test.append(X)
+
+    test_np = np.array(X_test)
+
+    assert (test_np.shape[3] == 3), "Input has wrong number of channels."
+    assert (len(test_np.shape) == 4), "Input tensor has wrong shape."
+
+    return test_np
+
 
 def train_val_split(x, y, val_ratio):
     x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=val_ratio, random_state=0)

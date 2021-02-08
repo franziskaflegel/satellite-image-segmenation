@@ -97,8 +97,21 @@ history = model.fit(
 # Plot training history
 plot_segm_history(history)
 
-# Plot original + pred + overlay (pred on top of original)
-model.load_weights(model_filename)
-y_pred = model.predict(x_val)
+#######################################################
+################# PLOT TEST RESULT ####################
+#######################################################
 
-plot_imgs(org_imgs=x_val, mask_imgs=y_val, pred_imgs=y_pred, nm_img_to_plot=10)
+# Plot original + pred + overlay (pred on top of original)
+
+test_directory = r'data/images_without_label/'
+test_np = load_test_data(test_directory)
+image_size = imgs_np.shape[1]
+
+print("Shape of X: " + str(imgs_np.shape))
+
+x_test = np.asarray(test_np, dtype=np.float32)
+
+model.load_weights(model_filename)
+y_pred = model.predict(x_test)
+
+plot_imgs(org_imgs=x_test, mask_imgs=y_pred, nm_img_to_plot=10)
