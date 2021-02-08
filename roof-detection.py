@@ -1,11 +1,21 @@
 from prepare_data import *
 from keras_unet.utils import plot_imgs
+from keras_unet.models import satellite_unet
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam, SGD
+from keras_unet.metrics import iou, iou_thresholded
+from keras_unet.utils import plot_segm_history
+from keras_unet.utils import plot_imgs
 
 # Parameters for data augmentation
-batch_size = 10
+batch_size = 8
 rotation_range = 5.
 channel_shift_range = 0.1
 zoom_range = 0.2
+
+# Training hyper paramters
+steps_per_epoch = 200
+epochs = 7
 
 # Directory and image size
 imgs_np, masks_np = load_data(r'data/images/')
@@ -22,7 +32,7 @@ x = np.asarray(imgs_np, dtype=np.float32)
 y = np.asarray(masks_np, dtype=np.float32)
 
 # Train/val split
-x_train, x_val, y_train, y_val = train_val_split(x, y, 0.2)
+x_train, x_val, y_train, y_val = train_val_split(x, y, 0.25)
 
 print("x_train: ", x_train.shape)
 print("y_train: ", y_train.shape)
@@ -36,4 +46,44 @@ sample_batch = next(train_gen)
 xx, yy = sample_batch
 print(xx.shape, yy.shape)
 
-plot_imgs(org_imgs=xx, mask_imgs=yy, nm_img_to_plot=batch_size, figsize=6)
+# plot_imgs(org_imgs=xx, mask_imgs=yy, nm_img_to_plot=batch_size, figsize=6)
+
+# Initialize network
+input_shape = x_train[0].shape
+model = satellite_unet(input_shape)
+model.summary()
+
+# Compile & train
+model_filename = 'segm_model_v3.h5'
+callback_checkpoint = ModelCheckpoint(
+    model_filename,
+    verbose=1,
+    monitor='val_loss',
+    save_best_only=True,
+)
+
+model.compile(
+    optimizer=Adam(),
+    # optimizer=SGD(lr=0.01, momentum=0.99),
+    loss='binary_crossentropy',
+    # loss=jaccard_distance,
+    metrics=[iou, iou_thresholded]
+)
+
+history = model.fit(
+    train_gen,
+    steps_per_epoch=steps_per_epoch,
+    epochs=epochs,
+    validation_data=(x_val, y_val),
+    callbacks=[callback_checkpoint]
+)
+
+
+# Plot training history
+plot_segm_history(history)
+
+# Plot original + ground truth + pred + overlay (pred on top of original)
+model.load_weights(model_filename)
+y_pred = model.predict(x_val)
+
+plot_imgs(org_imgs=x_val, mask_imgs=y_val, pred_imgs=y_pred, nm_img_to_plot=10)

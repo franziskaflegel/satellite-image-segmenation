@@ -54,17 +54,4 @@ def get_train_set_augmented(x_train, y_train, batch_size, rotation_range, channe
             fill_mode='constant'
         ))
 
-    # train_gen = get_augmented(
-    #     x_train, y_train, batch_size=2,
-    #     data_gen_args = dict(
-    #         rotation_range=5.,
-    #         width_shift_range=0.05,
-    #         height_shift_range=0.05,
-    #         shear_range=10,
-    #         zoom_range=0.2,
-    #         horizontal_flip=True,
-    #         vertical_flip=True,
-    #         fill_mode='constant'
-    #     ))
-
     return train_gen
