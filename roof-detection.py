@@ -1,3 +1,4 @@
+from loss_functions import jaccard_loss
 from prepare_data import *
 from keras_unet.utils import plot_imgs
 from keras_unet.models import satellite_unet
@@ -81,8 +82,8 @@ callback_checkpoint = ModelCheckpoint(
 model.compile(
     optimizer=Adam(),
     # optimizer=SGD(lr=0.01, momentum=0.99),
-    loss='binary_crossentropy',
-    # loss=jaccard_distance,
+    # loss='binary_crossentropy',
+    loss=jaccard_loss,
     metrics=[iou, iou_thresholded]
 )
 
